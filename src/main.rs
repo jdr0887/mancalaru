@@ -25,9 +25,7 @@ struct Board {
 
 impl Board {
     pub fn new(tokens_per_bin: i32) -> Board {
-        let mut init_bins = vec![tokens_per_bin; 14];
-        init_bins[6] = 0;
-        init_bins[13] = 0;
+        let init_bins = vec![tokens_per_bin; 14];
         Board { bins: init_bins }
     }
 }
