@@ -3,7 +3,7 @@ extern crate log;
 extern crate simple_logger;
 
 use log::Level;
-use std::fmt::Display;
+use std::fmt;
 use std::io;
 
 #[derive(Eq, PartialEq, Debug)]
@@ -12,8 +12,8 @@ enum Player {
     TWO,
 }
 
-impl Display for Player {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+impl fmt::Display for Player {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
         write!(f, "Player {:?}", self)
     }
 }
@@ -52,7 +52,7 @@ fn main() -> io::Result<()> {
             starting_cell = prompt_for_starting_cell(&current_player)?;
 
             if starting_cell > 6 {
-                warn!("Goofball...this time chose a number LESS THAN 7:");
+                warn!("Goofball...this time choose a number LESS THAN 7:");
                 continue;
             }
 
@@ -61,13 +61,11 @@ fn main() -> io::Result<()> {
             }
 
             let tokens_at_cell = board.bins[starting_cell - 1];
-            if tokens_at_cell == 0 {
-                warn!("Dummy...this time chose a bin WITH tokens in it:");
-            } else {
-                break;
+            match tokens_at_cell == 0 {
+                true => warn!("Dummy...this time choose a bin WITH tokens in it:"),
+                _ => break,
             }
         }
-
         'asdf: loop {
             debug!("starting_cell: {}", starting_cell);
 
