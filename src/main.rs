@@ -97,10 +97,7 @@ fn main() -> io::Result<()> {
         }
 
         if bins.clone().drain(0..5).all(|x| x == 0) || bins.clone().drain(7..12).all(|x| x == 0) {
-            let player1_score = bins[6];
-            let player2_score = bins[13];
-
-            match player1_score > player2_score {
+            match bins[6] > bins[13] {
                 true => break Player::ONE,
                 _ => break Player::TWO,
             }
