@@ -1,9 +1,3 @@
-#[macro_use]
-extern crate log;
-extern crate simple_logger;
-
-use log::Level;
-use std::fmt;
 use std::io;
 
 #[derive(Eq, PartialEq, Debug)]
@@ -12,69 +6,44 @@ enum Player {
     TWO,
 }
 
-impl fmt::Display for Player {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), fmt::Error> {
-        write!(f, "Player {:?}", self)
-    }
-}
-
-#[derive(Default, Debug)]
-struct Board {
-    bins: Vec<i32>,
-}
-
-impl Board {
-    pub fn new(tokens_per_bin: i32) -> Board {
-        let mut init_bins = vec![tokens_per_bin; 14];
-        init_bins[6] = 0;
-        init_bins[13] = 0;
-        Board { bins: init_bins }
-    }
-}
-
 fn prompt_for_starting_cell(player: &Player) -> io::Result<usize> {
-    println!("{} - select cell [1-6]: ", player);
+    println!("Player {:?} - select cell [1-6]: ", player);
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;
-    let starting_cell = input.trim().parse::<usize>().unwrap();
-    Ok(starting_cell)
+    Ok(input.trim().parse::<usize>().unwrap())
 }
 
 fn main() -> io::Result<()> {
-    simple_logger::init_with_level(Level::Info).unwrap();
-
-    let mut board = Board::new(4);
+    let mut bins = vec![4; 14];
+    bins[6] = 0;
+    bins[13] = 0;
 
     let mut current_player = Player::ONE;
-    loop {
-        let mut starting_cell = 0;
-        loop {
-            starting_cell = prompt_for_starting_cell(&current_player)?;
+    let winner = loop {
+        let mut starting_cell = loop {
+            let mut tmp_cell = prompt_for_starting_cell(&current_player)?;
 
-            if starting_cell > 6 {
-                warn!("Goofball...this time choose a number LESS THAN 7:");
+            if tmp_cell > 6 {
+                println!("Goofball...this time choose a number LESS THAN 7:");
                 continue;
             }
 
             if current_player == Player::TWO {
-                starting_cell = starting_cell + 7;
+                tmp_cell = tmp_cell + 7;
             }
 
-            let tokens_at_cell = board.bins[starting_cell - 1];
+            let tokens_at_cell = bins[tmp_cell - 1];
             match tokens_at_cell == 0 {
-                true => warn!("Dummy...this time choose a bin WITH tokens in it:"),
-                _ => break,
+                true => println!("Dummy...this time choose a bin WITH tokens in it:"),
+                _ => break tmp_cell,
             }
-        }
+        };
         'asdf: loop {
-            debug!("starting_cell: {}", starting_cell);
-
             let mut cell_idx = starting_cell - 1;
-            let tokens_at_cell = board.bins[cell_idx];
-            debug!("cell_idx: {}: tokens_at_cell: {}, current_player: {}", cell_idx, tokens_at_cell, current_player);
-            info!("before move: {:?}", board);
+            let tokens_at_cell = bins[cell_idx];
+            println!("board before move: {:?}", bins);
 
-            board.bins[cell_idx] = 0;
+            bins[cell_idx] = 0;
             cell_idx = cell_idx + 1;
 
             if current_player == Player::ONE && cell_idx == 13 {
@@ -98,13 +67,11 @@ fn main() -> io::Result<()> {
                     cell_idx = 7;
                 }
 
-                board.bins[cell_idx] = board.bins[cell_idx] + 1;
-                debug!("cell_idx: {}, move: {:?}", cell_idx, board);
+                bins[cell_idx] = bins[cell_idx] + 1;
 
                 if i == tokens_at_cell - 1 {
-                    if board.bins[cell_idx] == 1 {
-                        info!("after move: {:?}", board);
-                        debug!("turn over for {}", current_player);
+                    if bins[cell_idx] == 1 {
+                        println!("board after move: {:?}", bins);
                         match current_player == Player::ONE {
                             true => current_player = Player::TWO,
                             _ => current_player = Player::ONE,
@@ -113,8 +80,8 @@ fn main() -> io::Result<()> {
                     }
 
                     if (current_player == Player::TWO && cell_idx == 13) || (current_player == Player::ONE && cell_idx == 6) {
-                        info!("last token dropped in score bin...you get to go again");
-                        info!("after move: {:?}", board);
+                        println!("last token dropped in score bin...you get to go again");
+                        println!("board after move: {:?}", bins);
                         break 'asdf;
                     }
                 }
@@ -126,28 +93,21 @@ fn main() -> io::Result<()> {
                 }
             }
             starting_cell = cell_idx;
-            info!("after move: {:?}", board);
+            println!("board after move: {:?}", bins);
         }
 
-        let player1_bins = board.bins.clone().drain(0..5).all(|x| x == 0);
-        debug!("are player one bins empty: {}", player1_bins);
-
-        let player2_bins = board.bins.clone().drain(7..12).all(|x| x == 0);
-        debug!("are player two bins empty: {}", player2_bins);
-
-        if player1_bins || player2_bins {
-            info!("game over: {:?}", board);
-
-            let player1_score = board.bins[6];
-            let player2_score = board.bins[13];
+        if bins.clone().drain(0..5).all(|x| x == 0) || bins.clone().drain(7..12).all(|x| x == 0) {
+            let player1_score = bins[6];
+            let player2_score = bins[13];
 
             match player1_score > player2_score {
-                true => println!("Player 1 won!"),
-                _ => println!("Player 2 won!"),
+                true => break Player::ONE,
+                _ => break Player::TWO,
             }
-            break;
         }
-    }
+    };
+
+    println!("Winner is: {:?}", winner);
 
     Ok(())
 }
