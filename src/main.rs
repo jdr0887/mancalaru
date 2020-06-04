@@ -13,7 +13,7 @@ fn prompt_for_starting_cell(player: &Player) -> io::Result<usize> {
     Ok(input.trim().parse::<usize>().unwrap())
 }
 
-fn main() -> io::Result<()> {
+fn main() {
     let mut bins = vec![4; 14];
     bins[6] = 0;
     bins[13] = 0;
@@ -105,6 +105,4 @@ fn main() -> io::Result<()> {
     };
 
     println!("Winner is: {:?}", winner);
-
-    Ok(())
 }
