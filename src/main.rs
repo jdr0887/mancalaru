@@ -21,7 +21,7 @@ fn main() {
     let mut current_player = Player::ONE;
     let winner = loop {
         let mut starting_cell = loop {
-            let mut tmp_cell = prompt_for_starting_cell(&current_player)?;
+            let mut tmp_cell = prompt_for_starting_cell(&current_player).unwrap();
 
             if tmp_cell > 6 {
                 println!("Goofball...this time choose a number LESS THAN 7:");
